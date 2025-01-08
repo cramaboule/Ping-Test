@@ -1,0 +1,12 @@
+#
+#
+# my hosts file
+#
+#
+www.google.com google
+# line of comment
+123.456.789.111 IEsecond-hosts
+# inside network !
+10.10.10.1 my main server
+10.10.10.2 my second server
+10.10.10.10 my printer
