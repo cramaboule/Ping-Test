@@ -1,8 +1,8 @@
 #Region ;**** Directives created by AutoIt3Wrapper_GUI ****
 #AutoIt3Wrapper_Icon=green.ico
 #AutoIt3Wrapper_Res_Description=Ping Test By Cramaboule
-#AutoIt3Wrapper_Res_Fileversion=1.0.6.3
-#AutoIt3Wrapper_Res_ProductVersion=1.0.6.3
+#AutoIt3Wrapper_Res_Fileversion=1.0.6.4
+#AutoIt3Wrapper_Res_ProductVersion=1.0.6.4
 #AutoIt3Wrapper_Res_Icon_Add=green.ico
 #AutoIt3Wrapper_Res_Icon_Add=red.ico
 #AutoIt3Wrapper_Run_Tidy=y
@@ -11,19 +11,20 @@
 #Au3Stripper_Parameters=/mo
 #AutoIt3Wrapper_UseX64=y
 #EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
-#Region    ;Timestamp =====================
-#    Last complie at : 2025/01/08 07:58:41
-#EndRegion ;Timestamp =====================
 
-#comments-start
+#cs
 
 	AutoIt Version: 3.3.16.1
 	Author:         Cramaboule
 
-	History:
-	Ping Test 1.0.6.3	08.01.2025
-						Changed: Improve the _GetMachine, fixing bugs simplify making Gui.
-						Put the code up to date
+	ChangeLog:
+	1.0.6.4:	09.01.2025
+				fixed: bug posisionning Gui
+
+	1.0.6.3:	08.01.2025
+				Changed: Improve the _GetMachine, fixing bugs simplify making Gui.
+				Put the code up to date
+
 	Ping Test 1.6.2	Changed: GUI for W11 16.05.2022
 	Ping Test 1.6.1	Changed: Tray improvement
 					Changed: Initial display
@@ -55,7 +56,7 @@
 	Time out:		Set the time out for the inside network
 
 
-#comments-end
+#ce
 
 #include <GUIConstants.au3>
 #include <ButtonConstants.au3>
@@ -74,7 +75,7 @@ Global $pPing, $Ttimer, $Tflag, $Tdiff, $RedoGui, $NewMachine, $OldMachine, $mgg
 Global $trayrefresh, $showframe, $winstatetray
 
 ; head--------------------------------------------------
-$head = "Ping Test 1.0.6.3"
+$head = "Ping Test 1.0.6.4"
 
 #Region Ini File
 Global $TWait = IniRead(@ScriptDir & "\pingtest.ini", "Settings", "PingTime", 30) * 1000
@@ -102,7 +103,7 @@ TrayItemSetState($showframe, $TRAY_DEFAULT)
 If @Compiled Then
 	TraySetIcon(@ScriptFullPath, -5)
 Else
-	TraySetIcon(@ScriptDir & "\pingtest1.6.3.exe", -5)
+	TraySetIcon(@ScriptDir & "\pingtest.exe", -5)
 EndIf
 TraySetState()
 TraySetClick(16)
@@ -261,7 +262,7 @@ Func _Ping()
 			If @Compiled Then
 				TraySetIcon(@ScriptFullPath, -5)
 			Else
-				TraySetIcon(@ScriptDir & "\pingtest1.0.6.3.exe", -5)
+				TraySetIcon(@ScriptDir & "\pingtest.exe", -5)
 			EndIf
 			$messtray = $head
 			$f = 1
@@ -284,6 +285,7 @@ Func _CreateGui($bFirstTime = 0)
 			$winstate = 0
 		ElseIf Not BitAND($state, 8) Then ; 8 = active
 			$winstate = 1
+			$Winposping = WinGetPos($head)
 		Else
 			$winstate = 2
 			$Winposping = WinGetPos($head)
@@ -292,32 +294,35 @@ Func _CreateGui($bFirstTime = 0)
 
 		If $Nb_of_ping > 1 Then $Nb_of_ping = 0
 		$Tdiff = $TWait
-
 	EndIf
 
-	If $ShowAllPing Or $bFirstTime Then
+	If $bFirstTime Or $ShowAllPing Then
 		$iCount = $Nb_of_machines - 1
 		$aCount = $machine
-		$iPos1 = @DesktopWidth - 320
-		$iPos2 = -1
 	Else
 		$oldnoping = $noping
 		$iCount = $noping
 		$aCount = $machine_not_good
+	EndIf
+
+	If $bFirstTime Then
+		$iPos1 = @DesktopWidth - 320
+		$iPos2 = -1
+	Else
 		$iPos1 = $Winposping[0]
 		$iPos2 = $Winposping[1]
 	EndIf
 
-	$gui = GUICreate($head, 300, (15 * $iCount) + 22, $iPos1, $iPos2)
+	$gui = GUICreate($head, 300, (15 * $iCount) + 23, $iPos1, $iPos2)
 	$la = GUICtrlCreateLabel("", 0, 0, 300, (15 * $iCount) + 1)
 	GUICtrlSetState($la, $GUI_DISABLE)
 	GUICtrlSetBkColor($la, 0x000000)
 	If $ShowAllPing Or $bFirstTime Then
-		$button_hide = GUICtrlCreateButton("<< Hide", 180, (15 * $iCount) + 1, 100, 20, $BS_FLAT)
+		$button_hide = GUICtrlCreateButton("<< Hide", 180, (15 * $iCount) + 2, 100, 20, $BS_FLAT)
 	Else
-		$button_show = GUICtrlCreateButton("Show >>", 180, (15 * $iCount) + 1, 100, 20, $BS_FLAT)
+		$button_show = GUICtrlCreateButton("Show >>", 180, (15 * $iCount) + 2, 100, 20, $BS_FLAT)
 	EndIf
-	$button_refresh = GUICtrlCreateButton("Refresh", 20, (15 * $iCount) + 1, 100, 20, $BS_FLAT)
+	$button_refresh = GUICtrlCreateButton("Refresh", 20, (15 * $iCount) + 2, 100, 20, $BS_FLAT)
 	For $i = 1 To $iCount
 		$Input[$i][1] = GUICtrlCreateInput('  ' & $aCount[$i][1], 1, (15 * ($i - 1)) + 1, 98, 14, $ES_READONLY, $WS_EX_NOINHERITLAYOUT)
 		$Input[$i][2] = GUICtrlCreateInput('  ' & $aCount[$i][2], 100, (15 * ($i - 1)) + 1, 199, 14, $ES_READONLY, $WS_EX_NOINHERITLAYOUT)
